@@ -106,6 +106,8 @@
 #include "pulse_blanking_filter.h"
 #include "rtklib_pvt.h"
 #include "rtl_tcp_signal_source.h"
+#include "sbas_l1_ca_dll_pll_tracking.h"
+#include "sbas_l1_ca_pcps_acquisition.h"
 #include "sbas_l1_telemetry_decoder.h"
 #include "signal_conditioner.h"
 #include "spir_file_signal_source.h"
@@ -1101,6 +1103,12 @@ std::unique_ptr<GNSSBlockInterface> GNSSBlockFactory::GetBlock(
                         out_streams);
                     block = std::move(block_);
                 }
+            else if (implementation == "SBAS_L1_CA_PCPS_Acquisition")
+                {
+                    std::unique_ptr<AcquisitionInterface> block_ = std::make_unique<SbasL1CaPcpsAcquisition>(configuration, role, in_streams,
+                        out_streams);
+                    block = std::move(block_);
+                }
 #if OPENCL_BLOCKS
             else if (implementation == "GPS_L1_CA_PCPS_OpenCl_Acquisition")
                 {
@@ -1248,6 +1256,12 @@ std::unique_ptr<GNSSBlockInterface> GNSSBlockFactory::GetBlock(
             else if (implementation == "BEIDOU_B3I_DLL_PLL_Tracking")
                 {
                     std::unique_ptr<GNSSBlockInterface> block_ = std::make_unique<BeidouB3iDllPllTracking>(configuration, role, in_streams,
+                        out_streams);
+                    block = std::move(block_);
+                }
+            else if (implementation == "SBAS_L1_CA_DLL_PLL_Tracking")
+                {
+                    std::unique_ptr<GNSSBlockInterface> block_ = std::make_unique<SbasL1CaDllPllTracking>(configuration, role, in_streams,
                         out_streams);
                     block = std::move(block_);
                 }
@@ -1539,6 +1553,12 @@ std::unique_ptr<AcquisitionInterface> GNSSBlockFactory::GetAcqBlock(
                 out_streams);
             block = std::move(block_);
         }
+    else if (implementation == "SBAS_L1_CA_PCPS_Acquisition")
+        {
+            std::unique_ptr<AcquisitionInterface> block_ = std::make_unique<SbasL1CaPcpsAcquisition>(configuration, role, in_streams,
+                out_streams);
+            block = std::move(block_);
+        }
 #if OPENCL_BLOCKS
     else if (implementation == "GPS_L1_CA_PCPS_OpenCl_Acquisition")
         {
@@ -1704,6 +1724,12 @@ std::unique_ptr<TrackingInterface> GNSSBlockFactory::GetTrkBlock(
     else if (implementation == "BEIDOU_B3I_DLL_PLL_Tracking")
         {
             std::unique_ptr<TrackingInterface> block_ = std::make_unique<BeidouB3iDllPllTracking>(configuration, role, in_streams,
+                out_streams);
+            block = std::move(block_);
+        }
+    else if (implementation == "SBAS_L1_CA_DLL_PLL_Tracking")
+        {
+            std::unique_ptr<TrackingInterface> block_ = std::make_unique<SbasL1CaDllPllTracking>(configuration, role, in_streams,
                 out_streams);
             block = std::move(block_);
         }
