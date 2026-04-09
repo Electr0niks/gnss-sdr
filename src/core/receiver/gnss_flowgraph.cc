@@ -206,6 +206,7 @@ void GNSSFlowgraph::init()
     mapStringValues_["1C"] = evGPS_1C;
     mapStringValues_["2S"] = evGPS_2S;
     mapStringValues_["L5"] = evGPS_L5;
+    mapStringValues_["S1"] = evSBAS_1C;
     mapStringValues_["1B"] = evGAL_1B;
     mapStringValues_["5X"] = evGAL_5X;
     mapStringValues_["7X"] = evGAL_7X;
@@ -1604,6 +1605,14 @@ int GNSSFlowgraph::assign_channels()
             top_block_->disconnect_all();
             return 1;
         }
+    if (configuration_->property("Channels_S1.count", uint64_t(0ULL)) > available_SBAS_1C_signals_.size())
+        {
+            help_hint_ += " * The number of SBAS L1 channels is set to Channels_S1.count=" + std::to_string(configuration_->property("Channels_S1.count", 0));
+            help_hint_ += " but the maximum number of available SBAS satellites is " + std::to_string(available_SBAS_1C_signals_.size()) + ".\n";
+            help_hint_ += " Please set Channels_S1.count=" + std::to_string(available_SBAS_1C_signals_.size()) + " or lower in your configuration file.\n";
+            top_block_->disconnect_all();
+            return 1;
+        }
 
     // Assign satellites to channels in the initialization
     for (unsigned int& i : vector_of_channels)
@@ -1696,6 +1705,12 @@ int GNSSFlowgraph::assign_channels()
                             gnss_system_str = "Beidou";
                             gnss_signal = Gnss_Signal(Gnss_Satellite(gnss_system_str, sat), gnss_signal_str);
                             available_BDS_B3_signals_.remove(gnss_signal);
+                            break;
+
+                        case evSBAS_1C:
+                            gnss_system_str = "SBAS";
+                            gnss_signal = Gnss_Signal(Gnss_Satellite(gnss_system_str, sat), gnss_signal_str);
+                            available_SBAS_1C_signals_.remove(gnss_signal);
                             break;
 
                         default:
@@ -1810,6 +1825,11 @@ void GNSSFlowgraph::push_back_signal(const Gnss_Signal& gs)
             available_BDS_B3_signals_.push_back(gs);
             break;
 
+        case evSBAS_1C:
+            available_SBAS_1C_signals_.remove(gs);
+            available_SBAS_1C_signals_.push_back(gs);
+            break;
+
         default:
             LOG(ERROR) << "This should not happen :-(";
             break;
@@ -1863,6 +1883,10 @@ void GNSSFlowgraph::remove_signal(const Gnss_Signal& gs)
 
         case evBDS_B3:
             available_BDS_B3_signals_.remove(gs);
+            break;
+
+        case evSBAS_1C:
+            available_SBAS_1C_signals_.remove(gs);
             break;
 
         default:
@@ -2520,7 +2544,7 @@ void GNSSFlowgraph::set_signals_list()
                 }
         }
 
-    if (configuration_->property("Channels_SBAS.count", 0) > 0)
+    if (configuration_->property("Channels_S1.count", 0) > 0)
         {
             // Loop to create SBAS L1 C/A signals
             for (available_gnss_prn_iter = available_sbas_prn.cbegin();
@@ -2529,7 +2553,7 @@ void GNSSFlowgraph::set_signals_list()
                 {
                     available_SBAS_1C_signals_.emplace_back(
                         Gnss_Satellite(std::string("SBAS"), *available_gnss_prn_iter),
-                        std::string("1C"));
+                        std::string("S1"));
                 }
         }
 
@@ -2953,6 +2977,13 @@ Gnss_Signal GNSSFlowgraph::search_next_signal(const std::string& searched_signal
             result = available_BDS_B3_signals_.front();
             available_BDS_B3_signals_.pop_front();
             available_BDS_B3_signals_.push_back(result);
+            break;
+
+        case evSBAS_1C:
+            result = available_SBAS_1C_signals_.front();
+            available_SBAS_1C_signals_.pop_front();
+            available_SBAS_1C_signals_.push_back(result);
+            is_primary_frequency = true;
             break;
 
         default:

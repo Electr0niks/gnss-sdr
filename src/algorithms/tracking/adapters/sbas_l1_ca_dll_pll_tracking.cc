@@ -67,7 +67,7 @@ SbasL1CaDllPllTracking::SbasL1CaDllPllTracking(
         }
 
     trk_params.system = 'S';
-    const std::array<char, 3> sig{'1', 'C', '\0'};
+    const std::array<char, 3> sig{'S', '1', '\0'};
     std::copy_n(sig.data(), 3, trk_params.signal);
 
     // ################# Make a GNU Radio Tracking block object ################

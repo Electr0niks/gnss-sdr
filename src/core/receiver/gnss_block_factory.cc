@@ -486,6 +486,7 @@ std::unique_ptr<std::vector<std::unique_ptr<GNSSBlockInterface>>> GNSSBlockFacto
     const unsigned int Channels_B3_count = configuration->property("Channels_B3.count", 0);
     const unsigned int Channels_7X_count = configuration->property("Channels_7X.count", 0);
     const unsigned int Channels_E6_count = configuration->property("Channels_E6.count", 0);
+    const unsigned int Channels_S1_count = configuration->property("Channels_S1.count", 0);
 
     const unsigned int total_channels = Channels_1C_count +
                                         Channels_1B_count +
@@ -497,7 +498,8 @@ std::unique_ptr<std::vector<std::unique_ptr<GNSSBlockInterface>>> GNSSBlockFacto
                                         Channels_B1_count +
                                         Channels_B3_count +
                                         Channels_7X_count +
-                                        Channels_E6_count;
+                                        Channels_E6_count +
+                                        Channels_S1_count;
 
     auto channels = std::make_unique<std::vector<std::unique_ptr<GNSSBlockInterface>>>(total_channels);
     try
@@ -640,6 +642,19 @@ std::unique_ptr<std::vector<std::unique_ptr<GNSSBlockInterface>>> GNSSBlockFacto
                     // Store the channel into the vector of channels
                     channels->at(channel_absolute_id) = GetChannel(configuration,
                         std::string("7X"),
+                        channel_absolute_id,
+                        queue);
+                    channel_absolute_id++;
+                }
+
+            // **************** SBAS L1 C/A CHANNELS ****************************
+            LOG(INFO) << "Getting " << Channels_S1_count << " SBAS L1 C/A channels";
+
+            for (unsigned int i = 0; i < Channels_S1_count; i++)
+                {
+                    // Store the channel into the vector of channels
+                    channels->at(channel_absolute_id) = GetChannel(configuration,
+                        std::string("S1"),
                         channel_absolute_id,
                         queue);
                     channel_absolute_id++;
